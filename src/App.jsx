@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavBar from "./NavBar";
 import MainBody from "./MainBody";
 
@@ -47,14 +47,55 @@ const tempWatchedData = [
   },
 ];
 
+const KEY = import.meta.env.VITE_OMD_KEY;
+const tempQuery = "dsfajd;l";
+
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(
+    function () {
+      async function fetchData() {
+        try {
+          setError("");
+          setIsLoading(true);
+          const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+          if (!res.ok) throw new Error("No connection");
+
+          const data = await res.json();
+          console.log(data);
+          if (data.Response === "False") throw new Error(data.Error);
+
+          console.log(data.Search);
+          setMovies(data.Search);
+        } catch (error) {
+          console.error(error);
+          setError(error.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      if (query.length < 3) {
+        setError("");
+        setMovies([]);
+        return;
+      }
+
+      fetchData();
+    },
+    [query]
+  );
 
   return (
     <>
-      <NavBar movies={movies} />
-      <MainBody movies={movies} watched={watched} />
+      <NavBar movies={movies} query={query} setQuery={setQuery} />
+      <MainBody movies={movies} watched={watched} isLoading={isLoading} error={error} />
     </>
   );
 }
