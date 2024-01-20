@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ToggleBox from "./ToggleBox";
 import ResultMoviesList from "./ResultMoviesList";
 import WatchedMoviesSummary from "./WatchedMoviesSummary";
 import WatchedMoviesList from "./WatchedMoviesList";
 import MovieDetails from "./MovieDetails";
+import { Error, Loader } from "./HelperComponents";
 
-export default function MainBody({ movies, watched, isLoading, error }) {
+export default function MainBody({ movies, watched, isLoading, error, onAddWatched, onDeleteWatched }) {
   const [selectedId, setSelectedId] = useState(null);
 
   function handleSelectMovie(id) {
@@ -27,20 +28,17 @@ export default function MainBody({ movies, watched, isLoading, error }) {
         {!selectedId ? (
           <>
             <WatchedMoviesSummary watched={watched} />
-            <WatchedMoviesList watched={watched} />
+            <WatchedMoviesList watched={watched} onDeleteWatched={onDeleteWatched} />
           </>
         ) : (
-          <MovieDetails selectedId={selectedId} onCloseMovie={handleCloseMovie} />
+          <MovieDetails
+            selectedId={selectedId}
+            onCloseMovie={handleCloseMovie}
+            onAddWatched={onAddWatched}
+            watched={watched}
+          />
         )}
       </ToggleBox>
     </main>
   );
-}
-
-function Loader() {
-  return <div className="loader">Loading...</div>;
-}
-
-function Error({ message }) {
-  return <p className="error">{message}</p>;
 }

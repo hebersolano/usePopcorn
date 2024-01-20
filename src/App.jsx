@@ -53,18 +53,28 @@ const tempQuery = "dsfajd;l";
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
-
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function handleAddWatched(movie) {
+    setWatched((list) => [...list, movie]);
+  }
+
+  function handleDeleteWatched(id) {
+    setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
+  }
+
   useEffect(
     function () {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
       async function fetchData() {
         try {
           setError("");
           setIsLoading(true);
-          const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+          const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`, { signal });
           if (!res.ok) throw new Error("No connection");
 
           const data = await res.json();
@@ -73,9 +83,10 @@ export default function App() {
 
           console.log(data.Search);
           setMovies(data.Search);
+          setError("");
         } catch (error) {
           console.error(error);
-          setError(error.message);
+          if (error.name !== "AbortError") setError(error.message);
         } finally {
           setIsLoading(false);
         }
@@ -88,6 +99,10 @@ export default function App() {
       }
 
       fetchData();
+
+      return function cleaner() {
+        controller.abort();
+      };
     },
     [query]
   );
@@ -95,7 +110,14 @@ export default function App() {
   return (
     <>
       <NavBar movies={movies} query={query} setQuery={setQuery} />
-      <MainBody movies={movies} watched={watched} isLoading={isLoading} error={error} />
+      <MainBody
+        movies={movies}
+        watched={watched}
+        isLoading={isLoading}
+        error={error}
+        onAddWatched={handleAddWatched}
+        onDeleteWatched={handleDeleteWatched}
+      />
     </>
   );
 }
