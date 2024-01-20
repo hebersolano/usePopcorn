@@ -17,6 +17,13 @@ export default function MainBody({ movies, watched, isLoading, error, onAddWatch
     setSelectedId(null);
   }
 
+  useEffect(
+    function () {
+      handleCloseMovie();
+    },
+    [isLoading]
+  );
+
   return (
     <main className="main">
       <ToggleBox>

@@ -31,20 +31,34 @@ export default function MovieDetails({ selectedId, onCloseMovie, onAddWatched, w
         }
       }
       getMovieDetails();
-
-
     },
     [selectedId]
   );
 
   useEffect(
-    function () {
+    function setDocTitle() {
       document.title = movie ? movie.Title : "usePopcorn";
-      return function () {
+
+      return function effectCleaner() {
         document.title = "usePopcorn";
       };
     },
     [movie]
+  );
+
+  useEffect(
+    function closeDetailsWithScape() {
+      function callback(e) {
+        console.log(e.code);
+        if (e.code === "Escape") onCloseMovie();
+      }
+      document.addEventListener("keydown", callback);
+
+      return function effectCleaner() {
+        document.removeEventListener("keydown", callback);
+      };
+    },
+    [onCloseMovie]
   );
 
   return (
@@ -60,7 +74,6 @@ export default function MovieDetails({ selectedId, onCloseMovie, onAddWatched, w
 
 function Details({ movie, onCloseMovie, onAddWatched, isWatched }) {
   const [rating, setRating] = useState(0);
-  console.log("Is watched:", isWatched);
 
   function handleAdd() {
     const watchedMovie = {

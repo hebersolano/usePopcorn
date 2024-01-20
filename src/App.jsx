@@ -48,7 +48,6 @@ const tempWatchedData = [
 ];
 
 const KEY = import.meta.env.VITE_OMD_KEY;
-const tempQuery = "dsfajd;l";
 
 export default function App() {
   const [query, setQuery] = useState("");
@@ -66,7 +65,7 @@ export default function App() {
   }
 
   useEffect(
-    function () {
+    function getSearchResults() {
       const controller = new AbortController();
       const signal = controller.signal;
 
@@ -78,7 +77,6 @@ export default function App() {
           if (!res.ok) throw new Error("No connection");
 
           const data = await res.json();
-          console.log(data);
           if (data.Response === "False") throw new Error(data.Error);
 
           console.log(data.Search);
@@ -100,7 +98,7 @@ export default function App() {
 
       fetchData();
 
-      return function cleaner() {
+      return function effectCleaner() {
         controller.abort();
       };
     },
