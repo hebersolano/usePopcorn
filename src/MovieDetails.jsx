@@ -1,39 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import StarRating from "./StarRating.jsx";
 import { Error, Loader } from "./HelperComponents";
+import { useMovieDetails, useKey } from "./useCustomHooks.jsx";
 
 const KEY = import.meta.env.VITE_OMD_KEY;
 
 export default function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
-  const [movie, setMovie] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { movie, isLoading, error } = useMovieDetails(selectedId);
   const isWatched = watched.find((movie) => movie.imdbID == selectedId);
-
-  useEffect(
-    function () {
-      async function getMovieDetails() {
-        try {
-          setError("");
-          setIsLoading(true);
-          const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`);
-          if (!res.ok) throw new Error("No connection");
-          const data = await res.json();
-          if (data.Response === "False") throw new Error(data.Error);
-
-          console.log(data);
-          setMovie(data);
-        } catch (error) {
-          console.error(error);
-          setError(error.message);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-      getMovieDetails();
-    },
-    [selectedId]
-  );
 
   useEffect(
     function setDocTitle() {
@@ -46,20 +20,21 @@ export default function MovieDetails({ selectedId, onCloseMovie, onAddWatched, w
     [movie]
   );
 
-  useEffect(
-    function closeDetailsWithScape() {
-      function callback(e) {
-        console.log(e.code);
-        if (e.code === "Escape") onCloseMovie();
-      }
-      document.addEventListener("keydown", callback);
+  useKey("Escape", onCloseMovie);
 
-      return function effectCleaner() {
-        document.removeEventListener("keydown", callback);
-      };
-    },
-    [onCloseMovie]
-  );
+  // useEffect(
+  //   function closeDetailsWithScape() {
+  //     function callback(e) {
+  //       if (e.code === "Escape") onCloseMovie();
+  //     }
+  //     document.addEventListener("keydown", callback);
+
+  //     return function effectCleaner() {
+  //       document.removeEventListener("keydown", callback);
+  //     };
+  //   },
+  //   [onCloseMovie]
+  // );
 
   return (
     <>
@@ -74,6 +49,15 @@ export default function MovieDetails({ selectedId, onCloseMovie, onAddWatched, w
 
 function Details({ movie, onCloseMovie, onAddWatched, isWatched }) {
   const [rating, setRating] = useState(0);
+
+  const countRef = useRef(0);
+  useEffect(
+    function () {
+      if (rating) countRef.current = countRef.current + 1;
+      console.log("Counter rating decision:", countRef.current);
+    },
+    [rating]
+  );
 
   function handleAdd() {
     const watchedMovie = {
